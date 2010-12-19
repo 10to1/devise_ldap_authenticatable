@@ -83,6 +83,7 @@ module Devise
 
       def in_required_groups?
         return true unless ::Devise.ldap_check_group_membership
+        DeviseLdapAuthenticatable::Logger.send("LDAP Check required groups - \n#{@required_groups.inspect}")
 
         ## FIXME set errors here, the ldap.yml isn't set properly.
         return false if @required_groups.nil?
