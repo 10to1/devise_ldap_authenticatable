@@ -38,7 +38,7 @@ module Devise
         @ldap.port = ldap_config["port"]
         @ldap.base = ldap_config["base"]
         @attribute = ldap_config["attribute"]
-        @ldap_auth_username_builder = params[:ldap_auth_username_builder]
+        # @ldap_auth_username_builder = params[:ldap_auth_username_builder]
 
         @group_base = ldap_config["group_base"]
         @required_groups = ldap_config["required_groups"]
@@ -65,7 +65,9 @@ module Devise
 
       def authenticate!
         # @ldap.auth(dn, @password)
-        @ldap.bind_as(:filter => "(uid=#{@login})", :password => @password)
+        result = @ldap.bind_as(:filter => "(uid=#{@login})", :password => @password)
+        DeviseLdapAuthenticatable::Logger.send("Authorized user #{result.inspect}")
+        result
       end
 
       def authenticated?
