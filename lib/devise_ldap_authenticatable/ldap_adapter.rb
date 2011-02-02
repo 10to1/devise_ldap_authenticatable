@@ -158,7 +158,7 @@ module Devise
       # 
       #   DeviseLdapAuthenticatable::Logger.send("Modifying user #{dn}")
       #   admin_ldap.modify(:dn => dn, :operations => operations)
-      end
+      # end
 
     end
 
