@@ -44,28 +44,28 @@ module Devise
         @required_groups = ldap_config["required_groups"]
         @required_attributes = ldap_config["require_attribute"]
 
-        @ldap.auth ldap_config["admin_user"], ldap_config["admin_password"] if params[:admin]
+        @ldap.auth ldap_config["admin_user"], ldap_config["admin_password"] #if params[:admin]
 
         @login = params[:login]
         @password = params[:password]
         @new_password = params[:new_password]
       end
 
-      def dn
-        DeviseLdapAuthenticatable::Logger.send("LDAP search: #{@attribute}=#{@login}")
-        filter = Net::LDAP::Filter.eq(@attribute.to_s, @login.to_s)
-        ldap_entry = nil
-        @ldap.search(:filter => filter) {|entry| ldap_entry = entry}
-        if ldap_entry.nil?
-          @ldap_auth_username_builder.call(@attribute,@login,@ldap)
-        else
-          ldap_entry.dn
-        end
-      end
+      # def dn
+      #   DeviseLdapAuthenticatable::Logger.send("LDAP search: #{@attribute}=#{@login}")
+      #   filter = Net::LDAP::Filter.eq(@attribute.to_s, @login.to_s)
+      #   ldap_entry = nil
+      #   @ldap.search(:filter => filter) {|entry| ldap_entry = entry}
+      #   if ldap_entry.nil?
+      #     @ldap_auth_username_builder.call(@attribute,@login,@ldap)
+      #   else
+      #     ldap_entry.dn
+      #   end
+      # end
 
       def authenticate!
         @ldap.auth(dn, @password)
-        @ldap.bind
+        @ldap.bind_as(:filter => "(uid=#{@login})", :password => @password)
       end
 
       def authenticated?
@@ -73,7 +73,7 @@ module Devise
       end
 
       def authorized?
-        DeviseLdapAuthenticatable::Logger.send("Authorizing user #{dn}")
+        DeviseLdapAuthenticatable::Logger.send("Authorizing user #{@login}")
         authenticated? && in_required_groups? && has_required_attribute?
       end
 
@@ -110,7 +110,7 @@ module Devise
 
         @required_attributes.each do |key,val|
           unless user[key].include? val
-            DeviseLdapAuthenticatable::Logger.send("User #{dn} did not match attribute #{key}:#{val}")
+            DeviseLdapAuthenticatable::Logger.send("User #{@login} did not match attribute #{key}:#{val}")
             return false
           end
         end
@@ -118,13 +118,13 @@ module Devise
         return true
       end
 
-      def user_groups
-        admin_ldap = LdapConnect.admin
-
-        DeviseLdapAuthenticatable::Logger.send("Getting groups for #{dn}")
-        filter = Net::LDAP::Filter.eq("uniqueMember", dn)
-        admin_ldap.search(:filter => filter, :base => @group_base).collect(&:dn)
-      end
+      # def user_groups
+      #   admin_ldap = LdapConnect.admin
+      # 
+      #   DeviseLdapAuthenticatable::Logger.send("Getting groups for #{@login}")
+      #   filter = Net::LDAP::Filter.eq("uniqueMember", dn)
+      #   admin_ldap.search(:filter => filter, :base => @group_base).collect(&:dn)
+      # end
 
       private
 
@@ -139,25 +139,25 @@ module Devise
         return ldap
       end
 
-      def find_ldap_user(ldap)
-        DeviseLdapAuthenticatable::Logger.send("Finding user: #{dn}")
-        ldap.search(:base => dn, :scope => Net::LDAP::SearchScope_BaseObject).try(:first)
-      end
+      # def find_ldap_user(ldap)
+      #   DeviseLdapAuthenticatable::Logger.send("Finding user: #{@login}")
+      #   ldap.search(:base => dn, :scope => Net::LDAP::SearchScope_BaseObject).try(:first)
+      # end
 
-      def update_ldap(ops)
-        operations = []
-        if ops.is_a? Hash
-          ops.each do |key,value|
-            operations << [:replace,key,value]
-          end
-        elsif ops.is_a? Array
-          operations = ops
-        end
-
-        admin_ldap = LdapConnect.admin
-
-        DeviseLdapAuthenticatable::Logger.send("Modifying user #{dn}")
-        admin_ldap.modify(:dn => dn, :operations => operations)
+      # def update_ldap(ops)
+      #   operations = []
+      #   if ops.is_a? Hash
+      #     ops.each do |key,value|
+      #       operations << [:replace,key,value]
+      #     end
+      #   elsif ops.is_a? Array
+      #     operations = ops
+      #   end
+      # 
+      #   admin_ldap = LdapConnect.admin
+      # 
+      #   DeviseLdapAuthenticatable::Logger.send("Modifying user #{dn}")
+      #   admin_ldap.modify(:dn => dn, :operations => operations)
       end
 
     end
