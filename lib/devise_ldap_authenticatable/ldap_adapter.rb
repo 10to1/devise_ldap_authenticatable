@@ -64,7 +64,7 @@ module Devise
       # end
 
       def authenticate!
-        @ldap.auth(dn, @password)
+        # @ldap.auth(dn, @password)
         @ldap.bind_as(:filter => "(uid=#{@login})", :password => @password)
       end
 
