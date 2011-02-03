@@ -61,6 +61,7 @@ module Devise
             
             resource = new
             resource[@login_with] = attributes[@login_with]
+            resource.name = attributes[:name]
             resource.password = attributes[:password]
           end
                     
