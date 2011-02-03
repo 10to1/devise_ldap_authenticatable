@@ -57,11 +57,11 @@ module Devise
           resource = scoped.where(@login_with => attributes[@login_with]).first
                     
           if (resource.blank? and ::Devise.ldap_create_user)
-            DeviseLdapAuthenticatable::Logger.send("#{attributes.inspect}")
+            DeviseLdapAuthenticatable::Logger.send("Login name: #{attributes[:name]}")
+            
             resource = new
             resource[@login_with] = attributes[@login_with]
             resource.password = attributes[:password]
-            
           end
                     
           if resource.try(:valid_ldap_authentication?, attributes[:password])
