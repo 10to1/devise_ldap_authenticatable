@@ -58,11 +58,11 @@ module Devise
                     
           if (resource.blank? and ::Devise.ldap_create_user)
             DeviseLdapAuthenticatable::Logger.send("Login name: #{attributes[:name]}")
-            
             resource = new
             resource[@login_with] = attributes[@login_with]
             resource.name = attributes[:name]
             resource.password = attributes[:password]
+            DeviseLdapAuthenticatable::Logger.send("Resource looks like: #{resource.inspect}")
           end
                     
           if resource.try(:valid_ldap_authentication?, attributes[:password])
